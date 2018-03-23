@@ -21,6 +21,11 @@
               text=""
             />
 
+            <wgu-toggle-searchwin-button
+              icon="search"
+              text="do search"
+            />
+
         </v-toolbar-items>
       </wgu-app-header>
 
@@ -80,6 +85,7 @@ import TopLogo from './components/TopLogo'
 import MenuButton from './components/MenuButton'
 import LayerListToggleButton from './components/layerlist/ToggleButton'
 import HelpWinToggleButton from './components/helpwin/ToggleButton'
+import SearchWinToggleButton from './components/searchwin/ToggleButton'
 import MeasureToolToggleButton from './components/measuretool/ToggleButton'
 
 export default {
@@ -97,6 +103,7 @@ export default {
     'wgu-menubutton': MenuButton,
     'wgu-toggle-layerlist-button': LayerListToggleButton,
     'wgu-toggle-helpwin-button': HelpWinToggleButton,
+    'wgu-toggle-searchwin-button': SearchWinToggleButton,
     'wgu-toggle-measuretool-button': MeasureToolToggleButton
   },
   data () {
