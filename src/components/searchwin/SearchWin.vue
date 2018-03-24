@@ -10,22 +10,23 @@
     <v-card-title primary-title>
       <div>
         <div class="">
-          Search for <input type="text" style="border:1px solid #ccc" v-model="q"/>
+          Search for <input type="text" class="wgu-input" v-model="q"/>
           <p>Displaying {{ results.length }} results,
           filtered by <strong>{{ q }}</strong></p>
-            <div v-for="res in results">
+          <div class="wgu-results">
+            <div v-for="res in results" class="wgu-res">
+              <img src="static/shim.gif" :style="'background-image: url('+res.image.split('|')[1]||res.image[0].split('|')[1]+');'" v-if="res.image" class="wgu-res-image" />
               <div v-if="res.link" style="float:right">
                 <span v-for="link in res.link">
-                  <a target="_blank"
-                    :href="link.split('|')[2]+'?&request=getcapabilities'"
-                    v-if="link.split('|')[3]==='OGC:WMS'">
-                      {{link.split('|')[0].substring(0,20)}}</a>
+                 <button class="btn"
+                  v-if="link.split('|')[3]==='OGC:WMS'"
+                  v-on:click="set(link.split('|')[2],link.split('|')[0])">{{link.split('|')[0]}}</button>
                 </span>
               </div>
               <strong>{{res.title||res.defaultTitle}}</strong><br/>
               {{res.abstract.substring(0,80)}}...
             </div>
-
+          </div>
         </div>
       </div>
     </v-card-title>
@@ -38,7 +39,10 @@
 </template>
 
 <script>
+  import { WguEventBus } from '../../WguEventBus.js'
   import { DraggableWin } from '../../directives/DraggableWin.js';
+  import TileWMSSource from 'ol/source/TileWMS'
+  import TileLayer from 'ol/layer/Tile'
 
   export default {
     directives: {
@@ -53,6 +57,14 @@
         results: [],
         q: ''
       }
+    },
+    created () {
+      var me = this;
+      // Listen to the ol-map-mounted event and receive the OL map instance
+      WguEventBus.$on('ol-map-mounted', (olMap) => {
+        // make the OL map accesible in this component
+        me.map = olMap;
+      });
     },
     watch: {
       q (nw, old) {
@@ -69,11 +81,63 @@
           me.results = [];
         }
       }
+    },
+    methods: {
+      /**
+       * Creates a vector layer for the measurement results and adds it to the
+       * map.
+       */
+      set (url, layer) {
+        var me = this;
+        var l = new TileLayer({
+          source: new TileWMSSource({
+            url: url,
+            params: {'LAYERS': layer, 'TILED': true},
+            serverType: 'geoserver',
+            transition: 0
+          })
+        })
+        me.map.addLayer(l);
+      }
     }
   }
 </script>
 
 <style>
+
+  .btn {
+    padding: 5px;
+    width: 60px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: clip;
+  }
+
+  .wgu-res {
+    clear: both;
+    margin-bottom: 10px;
+  }
+
+  .wgu-res-image {
+    background-size:     cover;
+    background-repeat:   no-repeat;
+    background-position: center center;
+    width:60px;
+    height:60px;
+    border-radius: 50%;
+    float:left;
+    margin-right: 10px;
+  }
+
+  .wgu-results {
+    overflow: scroll;
+    max-width: 500px;
+    max-height: 300px;
+  }
+
+  .wgu-input {
+    border: 1px solid #ccc;
+  }
 
   .wgu-searchwin {
     background-color: white;
