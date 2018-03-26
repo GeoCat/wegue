@@ -11,9 +11,11 @@
       ref="searchwin"
       :icon="icon"
       :headline="headline"
-      :content="content"
       :left="left"
       :top="top"
+      :mode="mode"
+      :catalog="catalog"
+      :version="version"
     />
 
   </div>
@@ -29,15 +31,15 @@ export default {
   components: {
     'wgu-searchwin': searchwin
   },
+  props: ['catalog', 'mode', 'version'],
   data: function () {
     return {
       show: false,
       icon: 'search',
       text: '',
-      headline: 'Search catalog',
-      content: '<h3>Search a catalog</h3> <input type=text><button>Search</button>',
-      left: '300px',
-      top: '300px'
+      headline: 'Search',
+      left: '100px',
+      top: '200px'
     }
   },
   methods: {

@@ -23,7 +23,9 @@
 
             <wgu-toggle-searchwin-button
               icon="search"
-              text="do search"
+              mode="geonetwork"
+              catalog="//nationaalgeoregister.nl/geonetwork"
+              version="3.4"
             />
 
         </v-toolbar-items>

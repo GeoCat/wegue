@@ -15,12 +15,12 @@
           filtered by <strong>{{ q }}</strong></p>
           <div class="wgu-results">
             <div v-for="res in results" class="wgu-res">
-              <img src="static/shim.gif" :style="'background-image: url('+res.image.split('|')[1]||res.image[0].split('|')[1]+');'" v-if="res.image" class="wgu-res-image" />
+              <img src="static/shim.gif"
+                :style="'background-image: url('+mdThumb(res.image)+');'" v-if="res.image" class="wgu-res-image" />
               <div v-if="res.link" style="float:right">
-                <span v-for="link in res.link">
-                 <button class="btn"
-                  v-if="link.split('|')[3]==='OGC:WMS'"
-                  v-on:click="set(link.split('|')[2],link.split('|')[0])">{{link.split('|')[0]}}</button>
+                <span v-for="link in fixLinks(res.link)">
+                 <button class="btn-map" :title="'Add layer '+link.name+' to map'"
+                  @click="set(link.url,link.name)">{{link.name || link.url}}</button>
                 </span>
               </div>
               <strong>{{res.title||res.defaultTitle}}</strong><br/>
@@ -41,14 +41,14 @@
 <script>
   import { WguEventBus } from '../../WguEventBus.js'
   import { DraggableWin } from '../../directives/DraggableWin.js';
-  import TileWMSSource from 'ol/source/TileWMS'
-  import TileLayer from 'ol/layer/Tile'
+  import TileLayer from 'ol/layer/tile'
+  import TileWmsSource from 'ol/source/tilewms'
 
   export default {
     directives: {
       DraggableWin
     },
-    props: ['icon', 'headline', 'content'],
+    props: ['icon', 'headline', 'content', 'catalog', 'mode', 'version'],
     data () {
       return {
         show: false,
@@ -70,7 +70,7 @@
       q (nw, old) {
         var me = this;
         if (nw !== '') {
-          fetch('//nationaalgeoregister.nl/geonetwork/srv/dut/q?_content_type=json&fast=index&from=1&resultType=details&sortBy=relevance&to=20&dynamic&any=' + nw).then(
+          fetch(me.catalog + '/srv/dut/q?_content_type=json&fast=index&from=1&resultType=details&sortBy=relevance&to=20&dynamic&any=' + nw).then(
             function (response) {
               return response.text();
             }).then(
@@ -88,9 +88,13 @@
        * map.
        */
       set (url, layer) {
+        if (!(url || layer) && (url === '' || layer === '')) {
+          alert('No URL and/or Layer provided in metadata');
+          return;
+        }
         var me = this;
         var l = new TileLayer({
-          source: new TileWMSSource({
+          source: new TileWmsSource({
             url: url,
             params: {'LAYERS': layer, 'TILED': true},
             serverType: 'geoserver',
@@ -98,6 +102,29 @@
           })
         })
         me.map.addLayer(l);
+      },
+      mdThumb (t) {
+        if (typeof t === 'string' || t instanceof String) {
+          return t.split('|')[1];
+        } else {
+          return t[0].split('|')[1];
+        }
+      },
+      fixLinks (links) {
+        var lList = links;
+        var rList = [];
+        if (typeof links === 'string' || links instanceof String) {
+          lList = [links];
+        }
+        for (var i = 0; i < lList.length; i++) {
+          var lName = lList[i].split('|')[0];
+          var lUrl = lList[i].split('|')[2];
+          var lProtocol = lList[i].split('|')[3];
+          if (lProtocol.toUpperCase() === 'OGC:WMS' && lName && lUrl) {
+            rList.push({'url': lUrl, 'name': lName, 'protocol': lProtocol});
+          }
+        }
+        return rList;
       }
     }
   }
@@ -105,12 +132,14 @@
 
 <style>
 
-  .btn {
+  .btn-map {
     padding: 5px;
-    width: 60px;
+    width: 80px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: clip;
+    background-color: #c62828;
+    color: white;
   }
 
   .wgu-res {
