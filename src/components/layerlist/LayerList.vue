@@ -53,6 +53,13 @@
         // create the layer items from the OL map
         me.createLayerItems();
       });
+      WguEventBus.$on('ol-layer-added', function (l) {
+        me.createLayerItems();
+      });
+    },
+    mounted () {
+      var me = this
+      WguEventBus.$emit('wgu-layerlist-mounted', me)
     },
     methods: {
 

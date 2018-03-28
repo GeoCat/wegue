@@ -101,7 +101,9 @@
             transition: 0
           })
         })
+        l.set('name', layer);
         me.map.addLayer(l);
+        WguEventBus.$emit('ol-layer-added', l);
       },
       mdThumb (t) {
         if (typeof t === 'string' || t instanceof String) {
